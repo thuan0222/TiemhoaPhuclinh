@@ -1,0 +1,52 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "Floral arrangement or gift item available for purchase.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "number", "description": "Numeric ID for legacy support" },
+        "name": { "type": "string", "description": "Name of the bouquet or arrangement" },
+        "price": { "type": "string", "description": "Formatted price string e.g. 950,000₫" },
+        "priceValue": { "type": "number", "description": "Numeric price for sorting and filtering" },
+        "category": { "type": "string", "description": "Product category e.g. Bó hoa, Lẵng Hoa" },
+        "image": { "type": "string" },
+        "description": { "type": "string" },
+        "details": { "type": "array", "items": { "type": "string" } },
+        "salesCount": { "type": "number", "description": "Number of times this product was sold" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "price", "priceValue", "category", "image"]
+    },
+    "Story": {
+      "title": "Story",
+      "description": "Article or blog post about floral experiences.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "number" },
+        "title": { "type": "string" },
+        "subtitle": { "type": "string" },
+        "excerpt": { "type": "string" },
+        "category": { "type": "string" },
+        "author": { "type": "string" },
+        "date": { "type": "string" },
+        "image": { "type": "string" },
+        "content": { "type": "array", "items": { "type": "string" } },
+        "motto": { "type": "string" },
+        "color": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "excerpt", "image", "content"]
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Collection of all floral products available in the shop."
+    },
+    "/stories/{storyId}": {
+      "schema": "Story",
+      "description": "Collection of stories and articles."
+    }
+  }
+}

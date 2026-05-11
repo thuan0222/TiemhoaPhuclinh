@@ -1,0 +1,99 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // PHASE 3: Primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isEmailVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    // For this context, we'll consider the specific user email as admin
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.email == 'tranthuan05021996@gmail.com';
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // PHASE 4: Validation Blueprints
+    function isValidProduct(data) {
+      return data.keys().hasAll(['name', 'price', 'priceValue', 'category', 'image']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 200 &&
+             data.price is string && data.price.size() <= 50 &&
+             data.priceValue is number && data.priceValue >= 0 &&
+             data.category is string && data.category.size() <= 100 &&
+             data.image is string && data.image.size() <= 2000 &&
+             (!('id' in data) || (data.id is number || data.id is string)) &&
+             (!('description' in data) || (data.description is string && data.description.size() <= 2000)) &&
+             (!('details' in data) || (data.details is list && data.details.size() <= 20)) &&
+             (!('categories' in data) || (data.categories is list && data.categories.size() <= 10)) &&
+             (!('salesCount' in data) || (data.salesCount is number)) &&
+             (!('updatedAt' in data) || (data.updatedAt == request.time));
+    }
+
+    function isValidStory(data) {
+      return data.keys().hasAll(['title', 'category', 'author', 'date', 'image', 'content']) &&
+             data.title is string && data.title.size() <= 300 &&
+             data.category is string && data.category.size() <= 100 &&
+             data.author is string && data.author.size() <= 100 &&
+             data.date is string && data.date.size() <= 50 &&
+             data.image is string && data.image.size() <= 2000 &&
+             data.content is list && data.content.size() <= 50 &&
+             (!('excerpt' in data) || (data.excerpt is string && data.excerpt.size() <= 1000)) &&
+             (!('id' in data) || (data.id is number)) &&
+             (!('subtitle' in data) || (data.subtitle is string && data.subtitle.size() <= 300)) &&
+             (!('motto' in data) || (data.motto is string && data.motto.size() <= 1000)) &&
+             (!('color' in data) || (data.color is string && data.color.size() <= 100)) &&
+             (!('updatedAt' in data) || (data.updatedAt == request.time));
+    }
+
+    // COLLECTION: Products
+    match /products/{productId} {
+      allow get, list: if true; // Publicly readable
+      
+      allow create: if isAdmin() && isValidProduct(incoming()) && isValidId(productId);
+      
+      allow update: if isAdmin() && isValidProduct(incoming()) && (
+        // Action: Full Update
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'name', 'price', 'priceValue', 'category', 'categories', 'image', 'description', 'details', 'salesCount', 'updatedAt'
+        ])
+      );
+      
+      allow delete: if isAdmin();
+    }
+
+    // COLLECTION: Stories
+    match /stories/{storyId} {
+      allow get, list: if true; // Publicly readable
+      
+      allow create: if isAdmin() && isValidStory(incoming()) && isValidId(storyId);
+      
+      allow update: if isAdmin() && isValidStory(incoming()) && (
+        // Action: Full Update
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'title', 'subtitle', 'excerpt', 'category', 'author', 'date', 'image', 'content', 'motto', 'color', 'updatedAt'
+        ])
+      );
+      
+      allow delete: if isAdmin();
+    }
+  }
+}
