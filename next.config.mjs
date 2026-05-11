@@ -3,6 +3,7 @@ const nextConfig = {
   output: 'export',
   basePath: '/TiemhoaPhuclinh',
   assetPrefix: '/TiemhoaPhuclinh',
+  trailingSlash: true,
   images: {
     unoptimized: true,
     remotePatterns: [
