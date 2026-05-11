@@ -1,5 +1,11 @@
 'use client';
 
+export const dynamic = 'force-static';
+export const dynamicParams = false;
+export async function generateStaticParams() {
+  return [{ id: "1" }, { id: "2" }];
+}
+
 import { motion } from "motion/react";
 import Header from "@/components/Header";
 import FloatingContact from "@/components/FloatingContact";
